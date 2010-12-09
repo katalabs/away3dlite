@@ -526,10 +526,10 @@ package away3dlite.loaders
 				
 				//build the containers
 				buildContainers(containerData, container as ObjectContainer3D, 0);
-				
+
 				//build animations
 				buildAnimations();
-				
+
 	        	notifySuccess();
         	} else {
 				notifyProgress();
@@ -788,7 +788,16 @@ package away3dlite.loaders
             {
                 // Input
                 var field:Array = [];
-                
+                var fieldOffsets:Array = [];
+                var stride:Number=0;
+                {
+                    for each(var oinput:XML in triangles["input"]) {
+                       if (int(oinput.@offset)>stride) {
+                          stride=int(oinput.@offset);
+                       }
+                    }
+                    ++stride;
+                }
                 for each(var input:XML in triangles["input"]) {
                 	var semantic:String = input.@semantic;
                 	switch(semantic) {
@@ -799,8 +808,10 @@ package away3dlite.loaders
                 			deserialize(input, geometryData.geoXML, "UV", geometryData.uvtData);
 							break;
                 		default:
+                        
                 	}
                     field.push(input.@semantic);
+                    fieldOffsets.push(int(input.@offset));
                 }
 				
                 var data     :Array  = triangles["p"].split(' ');
@@ -814,27 +825,31 @@ package away3dlite.loaders
 				
 				//if (!materialLibrary[material])
 				//	parseMaterial(material, material);
-					
+		        var totalOffset=0;
                 for (var j:Number = 0; j < len; ++j)
                 {
                     var _faceData:FaceData = new FaceData();
 
                     for (var vn:Number = 0; vn < 3; vn++)
                     {
-                        for each (var fld:String in field)
+                        for (var fldindex=0; fldindex<field.length;++fldindex)
                         {
+                            var fld:String = field[fldindex];
+                            var fldOffset:Number = fieldOffsets[fldindex];
                         	switch(fld)
                         	{
                         		case "VERTEX":
-                        			_faceData["v" + vn] = data.shift();
+                        			_faceData["v" + vn] = data[fldOffset+totalOffset];
                         			break;
                         		case "TEXCOORD":
-                        			_faceData["uv" + vn] = data.shift();
+                        			_faceData["uv" + vn] = data[fldOffset+totalOffset];
                         			break;
                         		default:
-                        			data.shift();
+                                 //data.shift();
+
                         	}
                         }
+                        totalOffset+=stride;
                     }
                     
                     _meshMaterialData.faceList.push(geometryData.faces.length);

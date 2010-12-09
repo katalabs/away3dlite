@@ -58,9 +58,10 @@
         	_transformMatrix3D = joint.transform.matrix3D.clone();
         	var child:DisplayObjectContainer = joint;
         	
-        	while (child.parent != parent) {
+        	while (child.parent && child.parent != parent) {
         		child = child.parent;
-        		_transformMatrix3D.append(child.transform.matrix3D);
+                if (child&&child.transform&&child.transform.matrix3D)
+            		_transformMatrix3D.append(child.transform.matrix3D);
         	}
         	_transformMatrix3D.prepend(bindMatrix);
         }
