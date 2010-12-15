@@ -258,6 +258,7 @@ package away3dlite.loaders
 			            var sZ:String;
 						
 						for each (var channelData:ChannelData in _animationData.channels) {
+                            if (!channelData) continue;
 							var channel:Channel = channelData.channel;
 							
 							channel.target = _containers[channel.name];

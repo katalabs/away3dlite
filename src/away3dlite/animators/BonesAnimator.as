@@ -4,7 +4,7 @@ package away3dlite.animators
 	import away3dlite.animators.bones.*;
 	import away3dlite.containers.*;
 	import away3dlite.core.utils.*;
-	
+    import flash.external.*;	
 	/**
 	 * hold the animation information for a bones animation imported from a collada object
 	 * 
@@ -70,8 +70,9 @@ package away3dlite.animators
             // ensure vertex list is populated
             if (!_skinVertices.fixed)
                 populateVertices();
-
+             ExternalInterface.call("Kata.log","Up channel "+time);         
         	//update channels
+
             for each (var channel:Channel in _channels)
                 channel.update(time, interpolate);
             
