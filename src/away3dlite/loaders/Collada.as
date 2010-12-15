@@ -781,6 +781,7 @@ package away3dlite.loaders
             
             // C4D
             var isC4D:Boolean = (trianglesXMLList.length()==0 && geometryData.geoXML["mesh"].polylist.length()>0);
+            var vPolygonCount:Array = null;
             if(isC4D)
             	trianglesXMLList = geometryData.geoXML["mesh"].polylist;
             
@@ -813,7 +814,8 @@ package away3dlite.loaders
                     field.push(input.@semantic);
                     fieldOffsets.push(int(input.@offset));
                 }
-				
+
+                if (isC4D) vPolygonCount= triangles["vcount"].split(' ');
                 var data     :Array  = triangles["p"].split(' ');
                 var len      :Number = triangles.@count;
                 var symbol :String = triangles.@material;
@@ -828,32 +830,37 @@ package away3dlite.loaders
 		        var totalOffset=0;
                 for (var j:Number = 0; j < len; ++j)
                 {
-                    var _faceData:FaceData = new FaceData();
-
-                    for (var vn:Number = 0; vn < 3; vn++)
-                    {
-                        for (var fldindex=0; fldindex<field.length;++fldindex)
+                    var curPolygonCount=(vPolygonCount==null?3:vPolygonCount[j]);
+                    for (var curPolygon=0;curPolygon+3<=curPolygonCount;++curPolygon) {
+                        var _faceData:FaceData = new FaceData();
+                        for (var vn:Number = 0; vn < 3; vn++)
                         {
-                            var fld:String = field[fldindex];
-                            var fldOffset:Number = fieldOffsets[fldindex];
-                        	switch(fld)
-                        	{
+                            for (var fldindex=0; fldindex<field.length;++fldindex)
+                            {
+                                var fld:String = field[fldindex];
+                                var fldOffset:Number = fieldOffsets[fldindex];
+                                var curPolygonStrideOffset:Number = 0;
+                                if (vn==1) curPolygonStrideOffset=stride*(curPolygon+1);
+                                if (vn==2) curPolygonStrideOffset=stride*(curPolygon+2);
+                        	    switch(fld)
+                            	{
                         		case "VERTEX":
-                        			_faceData["v" + vn] = data[fldOffset+totalOffset];
+                        			_faceData["v" + vn] = data[fldOffset+totalOffset+curPolygonStrideOffset];
                         			break;
                         		case "TEXCOORD":
-                        			_faceData["uv" + vn] = data[fldOffset+totalOffset];
+                        			_faceData["uv" + vn] = data[fldOffset+totalOffset+curPolygonStrideOffset];
                         			break;
                         		default:
                                  //data.shift();
 
-                        	}
+                            	}
+                            }
                         }
-                        totalOffset+=stride;
-                    }
                     
-                    _meshMaterialData.faceList.push(geometryData.faces.length);
-                    geometryData.faces.push(_faceData);
+                        _meshMaterialData.faceList.push(geometryData.faces.length);
+                        geometryData.faces.push(_faceData);
+                    }
+                    totalOffset+=stride*curPolygonCount;
                 }
             }
             
