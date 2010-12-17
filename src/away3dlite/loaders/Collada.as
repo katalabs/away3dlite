@@ -23,7 +23,7 @@ package away3dlite.loaders
         private var animationLibrary:AnimationLibrary;
         private var channelLibrary:ChannelLibrary;
         private var symbolLibrary:Dictionary;
-        private var yUp:Boolean;
+        public var yUp:Boolean;
     	private var _face:Face;
     	private var _moveVector:Vector3D = new Vector3D();
 		private var _geometryArray:Array;
@@ -481,7 +481,6 @@ package away3dlite.loaders
 			
 			_container.materialLibrary = _materialLibrary;
 			_container.geometryLibrary = _geometryLibrary;
-			
 			animationLibrary = container.animationLibrary = new AnimationLibrary();
 			channelLibrary = new ChannelLibrary();
 			symbolLibrary = new Dictionary(true);
@@ -524,9 +523,17 @@ package away3dlite.loaders
         	if (_parsedChunks == _totalChunks) {
 	        	//build materials
 				buildMaterials();
-				
+/* would need to rotate a new child because the transform of _container is overwritten in notifySuccess
+                if (!yUp) {
+                    var blah:ObjectContainer3D= new ObjectContainer3D;
+                    container.addChild(blah);
+ 				   blah.transform.matrix3D.appendRotation(180,new Vector3D(0,1,0)); 
+buildContainers(containerData, blah as ObjectContainer3D, 0);
+                }else 
+*/
+                buildContainers(containerData, container as ObjectContainer3D, 0);
 				//build the containers
-				buildContainers(containerData, container as ObjectContainer3D, 0);
+				
 
 				//build animations
 				buildAnimations();
